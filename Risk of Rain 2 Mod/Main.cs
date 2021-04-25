@@ -7,6 +7,7 @@ using RoR2.Stats;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Networking;
 namespace AlexTheDragon
 {
     [R2APISubmoduleDependency(nameof(ArtifactAPI), nameof(DirectorAPI), nameof(InteractablesAPI))]
@@ -15,15 +16,15 @@ namespace AlexTheDragon
     public class OneRun100 : BaseUnityPlugin
     {
         DirectorCard lesserWisp, jellyfish, beetle, lemurian, hermitCrab, imp, vulture, roboBallMini, miniMushroom, bell, beetleGuard, bison, golem, parent, clayBruiser, greaterWisp, lemurianBruiser,
-            nullifier, beetleQueen, clayBoss, stoneTitanBlackBeach, stoneTitanDampCave, stoneTitanGolemPlains, stoneTitanGooLake, vagrant, magmaWorm, roboBallBoss, 
+            nullifier, beetleQueen, clayBoss, stoneTitanBlackBeach, stoneTitanDampCave, stoneTitanGolemPlains, stoneTitanGooLake, vagrant, magmaWorm, roboBallBoss,
             gravekeeper, impBoss, grandParent, electricWorm, lunarGolem, lunarWisp, lunarExploder, scavenger = new DirectorCard();
 
 
-        
+
         bool artifactTranscriptionWasOn = false;
         public void Awake()
         {
-            
+
             Logger.LogMessage("Ready for action!"); //REMOVE BEFORE RELEASE
             AchievementHooks();
             EscapeHook();
@@ -71,10 +72,9 @@ namespace AlexTheDragon
 
         }
 
-        private Run.TimeStamp fadeOutTime; 
-        private bool lunarFinished;              
-        private bool removedItem;           
-
+        private Run.TimeStamp fadeOutTime;
+        private bool lunarFinished;
+        private bool removedItem;
         public static ArtifactDef Transcription;
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace AlexTheDragon
             //SunderedGrove, Commencement, Arena
             DirectorAPI.Stage custom = DirectorAPI.Stage.Custom;
 
-            
+
             //Distant Roost
             DirectorAPI.Helpers.AddNewMonsterToStage(stoneTitanBlackBeach, champions, distantRoost);
             DirectorAPI.Helpers.AddNewMonsterToStage(beetleQueen, champions, distantRoost);
@@ -142,7 +142,7 @@ namespace AlexTheDragon
             DirectorAPI.Helpers.AddNewMonsterToStage(lemurian, basicMonsters, distantRoost);
             DirectorAPI.Helpers.AddNewMonsterToStage(lesserWisp, basicMonsters, distantRoost);
             DirectorAPI.Helpers.AddNewMonsterToStage(beetle, basicMonsters, distantRoost);
-            if(looped)
+            if (looped)
             {
                 DirectorAPI.Helpers.AddNewMonsterToStage(jellyfish, basicMonsters, distantRoost);
             }
@@ -179,8 +179,8 @@ namespace AlexTheDragon
             DirectorAPI.Helpers.AddNewMonsterToStage(clayBoss, champions, abandonedAqueduct);
             DirectorAPI.Helpers.AddNewMonsterToStage(stoneTitanGooLake, champions, abandonedAqueduct);
             DirectorAPI.Helpers.AddNewMonsterToStage(beetleQueen, champions, abandonedAqueduct);
-            DirectorAPI.Helpers.AddNewMonsterToStage(beetleGuard, minibosses, abandonedAqueduct); 
-            DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, abandonedAqueduct); 
+            DirectorAPI.Helpers.AddNewMonsterToStage(beetleGuard, minibosses, abandonedAqueduct);
+            DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, abandonedAqueduct);
             DirectorAPI.Helpers.AddNewMonsterToStage(lemurian, basicMonsters, abandonedAqueduct);
             DirectorAPI.Helpers.AddNewMonsterToStage(lesserWisp, basicMonsters, abandonedAqueduct);
             DirectorAPI.Helpers.AddNewMonsterToStage(beetle, basicMonsters, abandonedAqueduct);
@@ -193,8 +193,8 @@ namespace AlexTheDragon
             DirectorAPI.Helpers.AddNewMonsterToStage(clayBoss, champions, rallypointDelta);
             DirectorAPI.Helpers.AddNewMonsterToStage(magmaWorm, champions, rallypointDelta);
             DirectorAPI.Helpers.AddNewMonsterToStage(impBoss, champions, rallypointDelta);
-            DirectorAPI.Helpers.AddNewMonsterToStage(golem, minibosses, rallypointDelta); 
-            DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, rallypointDelta); 
+            DirectorAPI.Helpers.AddNewMonsterToStage(golem, minibosses, rallypointDelta);
+            DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, rallypointDelta);
             DirectorAPI.Helpers.AddNewMonsterToStage(bison, minibosses, rallypointDelta); //?
             DirectorAPI.Helpers.AddNewMonsterToStage(lemurian, basicMonsters, rallypointDelta);
             DirectorAPI.Helpers.AddNewMonsterToStage(lesserWisp, basicMonsters, rallypointDelta);
@@ -212,7 +212,7 @@ namespace AlexTheDragon
             DirectorAPI.Helpers.AddNewMonsterToStage(impBoss, champions, scorchedAcres);
             DirectorAPI.Helpers.AddNewMonsterToStage(beetleGuard, minibosses, scorchedAcres);
             DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, scorchedAcres);
-            DirectorAPI.Helpers.AddNewMonsterToStage(clayBruiser, minibosses, scorchedAcres); 
+            DirectorAPI.Helpers.AddNewMonsterToStage(clayBruiser, minibosses, scorchedAcres);
             DirectorAPI.Helpers.AddNewMonsterToStage(beetle, basicMonsters, scorchedAcres);
             DirectorAPI.Helpers.AddNewMonsterToStage(lesserWisp, basicMonsters, scorchedAcres);
             DirectorAPI.Helpers.AddNewMonsterToStage(imp, basicMonsters, scorchedAcres);
@@ -237,8 +237,8 @@ namespace AlexTheDragon
             DirectorAPI.Helpers.AddNewMonsterToStage(clayBoss, champions, custom, "rootjungle");
             DirectorAPI.Helpers.AddNewMonsterToStage(stoneTitanBlackBeach, champions, custom, "rootjungle");
             DirectorAPI.Helpers.AddNewMonsterToStage(vagrant, champions, custom, "rootjungle");
-            DirectorAPI.Helpers.AddNewMonsterToStage(golem, minibosses, custom, "rootjungle"); 
-            DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, custom, "rootjungle"); 
+            DirectorAPI.Helpers.AddNewMonsterToStage(golem, minibosses, custom, "rootjungle");
+            DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, custom, "rootjungle");
             DirectorAPI.Helpers.AddNewMonsterToStage(lemurianBruiser, basicMonsters, custom, "rootjungle");
             DirectorAPI.Helpers.AddNewMonsterToStage(lemurian, basicMonsters, custom, "rootjungle");
             DirectorAPI.Helpers.AddNewMonsterToStage(jellyfish, basicMonsters, custom, "rootjungle");
@@ -256,7 +256,7 @@ namespace AlexTheDragon
             DirectorAPI.Helpers.AddNewMonsterToStage(vulture, basicMonsters, sirenCall);
             if (looped)
             {
-                DirectorAPI.Helpers.AddNewMonsterToStage(nullifier, minibosses, sirenCall); 
+                DirectorAPI.Helpers.AddNewMonsterToStage(nullifier, minibosses, sirenCall);
             }
 
             //Sky Meadow 
@@ -471,9 +471,9 @@ namespace AlexTheDragon
 
             //Load the other ones manually B]
             var allCSC = Resources.LoadAll<CharacterSpawnCard>("SpawnCards/CharacterSpawnCards");
-            foreach(CharacterSpawnCard csc in allCSC)
+            foreach (CharacterSpawnCard csc in allCSC)
             {
-                if(csc != null)
+                if (csc != null)
                 {
                     switch (csc.name)
                     {
@@ -626,7 +626,7 @@ namespace AlexTheDragon
         /// Checks if this certain DirectorCard has been unlocked by checking the strings of each currently unlocked unlockable.
         /// </summary>
         /// <param name="DC">DirectorCard for this monster.</param>
-        private void IsMonsterNotUnlocked(DirectorCard DC)
+        private bool IsMonsterNotUnlocked(DirectorCard DC)
         {
             foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
             {
@@ -645,11 +645,10 @@ namespace AlexTheDragon
                         unlockableName = Regex.Replace(unlockableName, @"body\.0", "");
                         unlockableName = Regex.Replace(unlockableName, @"\.0", "");
                         unlockableName = "csc" + unlockableName;
-                        Logger.LogMessage(unlockableName);
                         //we have unlocked this monster log
                         if (unlockableName == DC.spawnCard.prefab.name)
                         {
-
+                            return false;
                         }
 
                         num++;
@@ -658,10 +657,10 @@ namespace AlexTheDragon
                     i++;
                 }
             }
-            string a = DC.spawnCard.prefab.name;
-            Logger.LogMessage(a); ////REMOVE BEFORE RELEASE
+            return true;
 
         }
+
         /// <summary>
         /// Adds the hooks for Run.Awake (InitialCardLoading(), activating Transcription) and Run.PickNextStageScene (Guaranteed Rallypoint Delta at stage 3).
         /// </summary>
@@ -672,11 +671,11 @@ namespace AlexTheDragon
                 InitialCardLoading();
                 orig(self);
             };
-            
+
             On.RoR2.Stage.BeginServer += (orig, self) => //Called everytime you enter a new stage
             {
                 Logger.LogMessage(Stage.instance.sceneDef.cachedName); //REMOVE UPON RELEASE
-                if(Stage.instance.sceneDef.cachedName != "bazaar")
+                if (Stage.instance.sceneDef.cachedName != "bazaar")
                 {
                     if (RunArtifactManager.instance.IsArtifactEnabled(Transcription))
                     {
@@ -698,54 +697,32 @@ namespace AlexTheDragon
                         }
                     }
                 }
-                
-                    
+
+
                 orig(self);
             };
-            
+
             On.RoR2.Run.PickNextStageScene += (orig, self, choices) => //Gets called at the start of a stage. Run.instance does exist, but ClassicStageInfo.instance does not.
-        {
-
-            if (Run.instance.stageClearCount == 1) //Guarantees Rallypoint Delta at stage 3 (we have to call it at stage 2, which would be 1 stage cleared).
             {
-                Run.instance.nextStageScene = Run.instance.startingScenes[0].destinations[0].destinations[0];
-                return;
-            }
-            orig(self, choices);
-        };
-            //On.RoR2.Run.nextStageScene +=
-            //ArtifactDef artifact = ArtifactCatalog.FindArtifactDef("Command");
-            //RunArtifactManager.instance.SetArtifactEnabledServer(Transcription, true); //Enables Spite (number 1)
 
-            // [The code we want to run]
-            // Call the original function (orig)
-            // on the object it's normally called on (self) 
+                if (Run.instance.stageClearCount == 1) //Guarantees Rallypoint Delta at stage 3 (we have to call it at stage 2, which would be 1 stage cleared).
+                {
+                    Run.instance.nextStageScene = Run.instance.startingScenes[0].destinations[0].destinations[0];
+                    return;
+                }
+                orig(self, choices);
+            };
+
 
             On.EntityStates.Huntress.ArrowRain.OnEnter += (orig, self) => //REMOVE BEFORE RELEASE
             {
-                Logger.LogMessage("Resetting monsters");
-                ResetAllMonsters();
-                
+
                 orig(self);
             };
 
-            On.EntityStates.Huntress.BlinkState.OnEnter += (orig, self) =>
+            On.EntityStates.Huntress.BlinkState.OnEnter += (orig, self) => //REMOVE BEFORE RELEASE
             {
-                //RemoveAllLoggedMonsters();
-                //
-                ClassicStageInfo csi = ClassicStageInfo.instance;
-                foreach (WeightedSelection<DirectorCard>.ChoiceInfo CI in csi.monsterSelection.choices)
-                {
-                    if (CI.value != null)
-                    {
-                        if (CI.value.spawnCard != null)
-                        { 
-                            string spawnCardName = CI.value.spawnCard.name;
-                            Logger.LogMessage("Spawncard name: " + spawnCardName);
-                        }
-                    }
-                }
-                Logger.LogMessage("\n");
+
                 orig(self);
             };
 
@@ -828,10 +805,10 @@ namespace AlexTheDragon
                     string unlockableName = statSheet.GetUnlockable(i).cachedName;  //“Logs.LemurianBody.0”
                     if (unlockableName.StartsWith("Logs.") & !unlockableName.StartsWith("Logs.Stages."))
                     {
-                         unlockableName = Regex.Replace(unlockableName, @"Body\.0", ""); //Removes "Body.0"
-                         unlockableName = Regex.Replace(unlockableName, @"\.0", ""); //Removes ".0" when "Body" is not named (like with Nullifier), works fine for vanilla B)
-                         unlockableName = unlockableName.Substring(5);
-                         unlockableName = "csc" + unlockableName;
+                        unlockableName = Regex.Replace(unlockableName, @"Body\.0", ""); //Removes "Body.0"
+                        unlockableName = Regex.Replace(unlockableName, @"\.0", ""); //Removes ".0" when "Body" is not named (like with Nullifier), works fine for vanilla B)
+                        unlockableName = unlockableName.Substring(5);
+                        unlockableName = "csc" + unlockableName;
                         if (unlockableName == "cscTitan")
                         {
                             DirectorAPI.Helpers.RemoveExistingMonster("cscTitanGolemPlains");
@@ -881,10 +858,6 @@ namespace AlexTheDragon
         {
             On.RoR2.UserAchievementManager.GrantAchievement += (orig, self, achievementDef) =>  //This works on User unlocks, like via UnlockAchievement().
             {
-                Logger.LogMessage("User granting achievement: " + achievementDef.nameToken);
-
-                List<BaseAchievement> achievementsList = new List<BaseAchievement>();
-
                 foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
                 {
                     GenericStaticEnumerable<AchievementDef, AchievementManager.Enumerator> allAchievementDefs = AchievementManager.allAchievementDefs;//get all the achievementdefs
@@ -892,7 +865,7 @@ namespace AlexTheDragon
                     {
                         if (userAchievDef == achievementDef) //did we actually get this achievement?
                         {
-                            AddItemFromAchievement(achievementDef); //add this item from this achievement to the itempool PLEAAASE
+                            AddItemFromString(achievementDef.unlockableRewardIdentifier); //add this item to the item pool
                         }
                     }
                 }
@@ -901,24 +874,11 @@ namespace AlexTheDragon
 
             On.RoR2.NetworkUser.ServerHandleUnlock += (orig, self, unlockableDef) => //This is NetworkUser, like what usually happens when someone unlocks an achievement.
             {
-                string unlockableName = unlockableDef.cachedName;
-                if (unlockableName.StartsWith("Logs.") && !unlockableName.StartsWith("Logs.Stages."))
-                {
-                    if(RunArtifactManager.instance.IsArtifactEnabled(Transcription.artifactIndex))
-                    {
-                        unlockableName = Regex.Replace(unlockableName, @"Body\.0", ""); //Removes "Body.0"
-                        unlockableName = Regex.Replace(unlockableName, @"\.0", ""); //Removes ".0" when "Body" is not named (like with Nullifier), works fine for vanilla B)
-                        unlockableName = unlockableName.Substring(5);//.ToLower();
-                        unlockableName = "csc" + unlockableName;
-                        RemoveMonster(unlockableName);
-                        orig(self, unlockableDef);
-                    }
-                }
-                AddItemFromString(unlockableName);
+                AddItemFromString(unlockableDef.cachedName);
                 orig(self, unlockableDef);
             };
         }
-        
+
         /// <summary>
         /// Removes this specific monster from the game.
         /// </summary>
@@ -936,7 +896,7 @@ namespace AlexTheDragon
                 {
                     if (CI.value.spawnCard != null)
                     {
-                        
+
                         string spawnCardName = CI.value.spawnCard.name;
                         if (monsterName == "cscTitan")
                         {
@@ -972,7 +932,7 @@ namespace AlexTheDragon
         /// Add an item to the item pool with an AchievementDef.
         /// </summary>
         /// <param name="achievementDef">The achievementDef of the thing that unlocks the item.</param>
-        public void AddItemFromAchievement(AchievementDef achievementDef)  
+        public void AddItemFromAchievement(AchievementDef achievementDef)
         {
             string unlockableRewardIdentifier = achievementDef.unlockableRewardIdentifier; //Takes "Items.[Item Name]" from the achievementDef
             string pattern = @"\w+\."; //this just means "[infinite letters until]."
@@ -985,7 +945,7 @@ namespace AlexTheDragon
                 string equipmentString = EqDef.name;
                 if (unlockableRewardIdentifier == equipmentString)
                 {
-                    Run.instance.availableEquipment.Add(EquipmentCatalog.FindEquipmentIndex(unlockableRewardIdentifier)); 
+                    Run.instance.availableEquipment.Add(EquipmentCatalog.FindEquipmentIndex(unlockableRewardIdentifier));
                     equipment = true;
                     break; //So we don't search everything if we already have it
                 }
@@ -995,15 +955,18 @@ namespace AlexTheDragon
                 Run.instance.availableItems.Add(ItemCatalog.FindItemIndex(unlockableRewardIdentifier)); //Add the item from this string into the available items
             }
             Run.instance.BuildDropTable(); //Makes it so that everything we added actually gets put into the game pool so we can get it on the next items, you can see it that old items do not have it with command, but hopefully that won't matter :]
+            UpdateDroppedCommandDroplets();
         }
         /// <summary>
         /// Add an item to the item pool, but uses a string instead of AchievementDefs.
         /// </summary>
         /// <param name="unlockableRewardIdentifier">The unlockableRewardIndentifier, e.g. "Item.Bear"</param>
-        public void AddItemFromString(string unlockableRewardIdentifier) 
+        public void AddItemFromString(string unlockableRewardIdentifier)
         {
-            string pattern = @"\w+\.";
-            unlockableRewardIdentifier = Regex.Replace(unlockableRewardIdentifier, pattern, "");
+            string pattern = @"\w+\."; //this just means "[infinite letters until]."
+            bool equipment = false;
+            unlockableRewardIdentifier = Regex.Replace(unlockableRewardIdentifier, pattern, ""); //remove "[infinite letters until]." so we have the itemname remaining
+
             foreach (EquipmentIndex i in EquipmentCatalog.equipmentList)
             {
                 EquipmentDef EqDef = EquipmentCatalog.GetEquipmentDef(i);
@@ -1011,13 +974,27 @@ namespace AlexTheDragon
                 if (unlockableRewardIdentifier == equipmentString)
                 {
                     Run.instance.availableEquipment.Add(EquipmentCatalog.FindEquipmentIndex(unlockableRewardIdentifier));
-                }
-                else //items
-                {
-                    Run.instance.availableItems.Add(ItemCatalog.FindItemIndex(unlockableRewardIdentifier));
+                    equipment = true;
+                    break; //So we don't search everything if we already have it
                 }
             }
-            Run.instance.BuildDropTable();
+            if (!equipment) //it doesn't matter if we try to find itemindex for characters or logs, due to the fact that they won't have the same name as an available item, and will not result in an ItemIndex that we can use
+            {
+                Run.instance.availableItems.Add(ItemCatalog.FindItemIndex(unlockableRewardIdentifier)); //Add the item from this string into the available items
+            }
+            Run.instance.BuildDropTable(); //Makes it so that everything we added actually gets put into the game pool so we can get it on the next items, you can see it that old items do not have it with command, but hopefully that won't matter :]
+            UpdateDroppedCommandDroplets();
+        }
+
+        public void UpdateDroppedCommandDroplets()
+        {
+            foreach (KeyValuePair<NetworkInstanceId, NetworkIdentity> a in NetworkServer.objects) //CommandCube(Clone)
+            {
+                if (a.Value.gameObject.name.StartsWith("CommandCube"))
+                {
+                    a.Value.gameObject.GetComponent<PickupPickerController>().SetOptionsFromPickupForCommandArtifact(a.Value.gameObject.GetComponent<PickupIndexNetworker>().NetworkpickupIndex);
+                }
+            }
         }
 
         /// <summary>
@@ -1039,7 +1016,7 @@ namespace AlexTheDragon
         /// <summary>
         /// Unlock the mastery achievement and survivor log for the currently played character, has a difficultycheck inside.
         /// </summary>
-        public void UnlockMasteryAchievement() 
+        public void UnlockMasteryAchievement()
         {
 
             string defaultString = "ClearGameMonsoon";  //default template for achievement is "[Character Name]ClearGameMonsoon", let's hope this isn't a problem with other characters :|
