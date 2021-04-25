@@ -2,12 +2,13 @@
 using R2API;
 using R2API.Utils;
 using RoR2;
-using RoR2.Achievements;
+using System.Security.Cryptography;
 using RoR2.Stats;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.Events;
 namespace AlexTheDragon
 {
     [R2APISubmoduleDependency(nameof(ArtifactAPI), nameof(DirectorAPI), nameof(InteractablesAPI))]
@@ -19,24 +20,33 @@ namespace AlexTheDragon
             nullifier, beetleQueen, clayBoss, stoneTitanBlackBeach, stoneTitanDampCave, stoneTitanGolemPlains, stoneTitanGooLake, vagrant, magmaWorm, roboBallBoss,
             gravekeeper, impBoss, grandParent, electricWorm, lunarGolem, lunarWisp, lunarExploder, scavenger = new DirectorCard();
 
-
+        byte[] transcriptionRecipe = {7, 7, 7,
+                                      5, 5, 5,
+                                      7, 7, 7};
+        byte[] inputRecipe = {0,0,0,
+                    0,0,0,
+                    0,0,0};
 
         bool artifactTranscriptionWasOn = false;
+
         public void Awake()
         {
-
+            
+            if (uE == null)
+                uE = new UnityEvent();
             Logger.LogMessage("Ready for action!"); //REMOVE BEFORE RELEASE
             AchievementHooks();
             EscapeHook();
             LunarScavengerHooks();
             AddHooks();
+            ArtifactHooks();
 
             OneRun100.Transcription = ScriptableObject.CreateInstance<ArtifactDef>();
             OneRun100.Transcription.nameToken = "Artifact of Transcription";
             OneRun100.Transcription.descriptionToken = "Logged enemies cannot spawn.";
             OneRun100.Transcription.smallIconDeselectedSprite = LoadSprite(OneRunDone.Properties.Resources.texTranscriptionResizedDisabled);
             OneRun100.Transcription.smallIconSelectedSprite = LoadSprite(OneRunDone.Properties.Resources.texTranscriptionResizedEnabled);
-            //OneRun100.Transcription.unlockableDef = ScriptableObject.CreateInstance<UnlockableDef>(); //makes it not appear on the home menu
+            //OneRun100.Transcription.unlockableDef = ScriptableObject.CreateInstance<UnlockableDef>(); //makes it not appear on the character select by default
             ArtifactAPI.Add(Transcription);
             //PortalDialerController.
 
@@ -69,14 +79,28 @@ namespace AlexTheDragon
 
             }*/
 
+            //[Message:One Run 100%] GenericPickup(Clone) (UnityEngine.GameObject)
 
+            //[Message:One Run 100%] AltarSkeletonBody (UnityEngine.GameObject) [nhukukamamsd opinion]
+
+            //[Message:One Run 100%] TimedChest (UnityEngine.GameObject)
+
+            //[Message:One Run 100%] FusionCellDestructibleBody(Clone) (UnityEngine.GameObject) (??? Rallypoint Delta)
+
+            //[Message:One Run 100%] VultureEggBody(Clone) (UnityEngine.GameObject) 
+            //255ACA2DDECB4FB47979F95170228FE0BE64591F1CBED427ABA5CDD808068393
+            //[Message:One Run 100%] PortalDialer (UnityEngine.GameObject)
+            //[Message:One Run 100%] PortalDialerButton 1 (UnityEngine.GameObject)
+            //[Message:One Run 100%] PortalDialerButton 9 (UnityEngine.GameObject)
         }
 
         private Run.TimeStamp fadeOutTime;
         private bool lunarFinished;
         private bool removedItem;
         public static ArtifactDef Transcription;
-
+        private SHA256 hasher;
+        Sha256Hash uhh;
+        UnityEvent uE;
         /// <summary>
         /// Removes and then reintroduces every vanilla monster back to their respective stage.
         /// </summary>
@@ -666,6 +690,7 @@ namespace AlexTheDragon
         /// </summary>
         private void AddHooks()
         {
+
             On.RoR2.Run.Awake += (orig, self) => { //Gets called once a run starts. NO INSTANCES EXIST YET. 
                 artifactTranscriptionWasOn = false; //Since technically speaking we didn't have a stage where the artifact was on.
                 InitialCardLoading();
@@ -704,7 +729,11 @@ namespace AlexTheDragon
 
             On.RoR2.Run.PickNextStageScene += (orig, self, choices) => //Gets called at the start of a stage. Run.instance does exist, but ClassicStageInfo.instance does not.
             {
-
+                if (Run.instance.stageClearCount == 0) //REMOVE BEFORE RELEASE
+                {
+                    Run.instance.nextStageScene = Run.instance.startingScenes[0].destinations[0].destinations[0].destinations[0].destinations[0];
+                    return;
+                }
                 if (Run.instance.stageClearCount == 1) //Guarantees Rallypoint Delta at stage 3 (we have to call it at stage 2, which would be 1 stage cleared).
                 {
                     Run.instance.nextStageScene = Run.instance.startingScenes[0].destinations[0].destinations[0];
@@ -713,17 +742,71 @@ namespace AlexTheDragon
                 orig(self, choices);
             };
 
-
             On.EntityStates.Huntress.ArrowRain.OnEnter += (orig, self) => //REMOVE BEFORE RELEASE
             {
+                foreach (KeyValuePair<NetworkInstanceId, NetworkIdentity> a in NetworkServer.objects) //CommandCube(Clone)
+                {
+                    if (a.Value.gameObject.name.StartsWith("PortalDialer") && !a.Value.gameObject.name.StartsWith("PortalDialerButton"))
+                    {
+                        PortalDialerController PDC = a.Value.gameObject.GetComponent<PortalDialerController>();
+                        uE.AddListener(delegate { PDC.OpenArtifactPortalServer(Transcription); });
 
-                orig(self);
+                        Logger.LogMessage(PDC.actions.Length);
+
+                        //PDC.actions[PDC.actions.Length].action = uE;
+                        //PDC.actions[PDC.actions.Length].hashAsset.value = uhh;
+                        //a.Value.gameObject.
+                        //a.Value.gameObject.GetComponent<PortalDialerController>().OpenArtifactPortalServer(Transcription); //Does work, but does work.
+                    }
+                }
+                        orig(self);
             };
 
+            //[Message:One Run 100%] PortalDialerButton 1 (UnityEngine.GameObject)
             On.EntityStates.Huntress.BlinkState.OnEnter += (orig, self) => //REMOVE BEFORE RELEASE
             {
+                foreach (KeyValuePair<NetworkInstanceId, NetworkIdentity> a in NetworkServer.objects) //CommandCube(Clone)
+                {
+                    /*if(a.Value.gameObject.name.StartsWith("PortalDialerButton"))
+                    {
+                        Logger.LogMessage("currentDigitIndex for " + a.Value.gameObject.name + ": "+ a.Value.gameObject.GetComponent<PortalDialerButtonController>().currentDigitIndex);
+                        Logger.LogMessage("currentDigitDef.value for " + a.Value.gameObject.name + ": " + a.Value.gameObject.GetComponent<PortalDialerButtonController>().currentDigitDef.value);
+                        //Logger.LogMessage("currentDigitDef.value for " + a.Value.gameObject.name + ": " + a.Value.gameObject.GetComponent<PortalDialerButtonController>().
+                        //ArtifactCompoundDef aCD = a;
+                    }*/
+                    if(a.Value.gameObject.name.StartsWith("PortalDialer") && !a.Value.gameObject.name.StartsWith("PortalDialerButton"))
+                    {
+                        //Logger.LogMessage(a.Value.gameObject.name);
+                        a.Value.gameObject.GetComponent<PortalDialerController>().PrintResult();
+                        //a.Value.gameObject.GetComponent<PortalDialerController>().buttons
 
-                orig(self);
+                        PortalDialerController PDC = a.Value.gameObject.GetComponent<PortalDialerController>();
+
+                        foreach(PortalDialerButtonController PDBC in PDC.dialingOrder)
+                        {
+                            //Logger.LogMessage(PDBC.currentDigitIndex);
+                        }
+
+
+                        foreach (PortalDialerController.DialedAction c in PDC.GetComponent<PortalDialerController>().actions) //PDC c action: OpenArtifactPortalServer [action.GetPersistentMethodName(0)]
+                        {
+                            //Logger.LogMessage("c: " + c);
+                            Logger.LogMessage("c hashAsset: " + c.hashAsset);
+                            Logger.LogMessage("c value: " + c.hashAsset.value);
+                            //Logger.LogMessage("PDC c action: " + c.action.GetPersistentMethodName(0));
+                        }
+
+                            foreach (PortalDialerButtonController b in PDC.GetComponent<PortalDialerController>().buttons)
+                        {
+                            //Logger.LogMessage("PDBC b name: " + b.name);
+                        }
+
+
+                    }
+                    //Logger.LogMessage(a.Value.gameObject);
+                }
+                Logger.LogMessage("\n");
+                    orig(self);
             };
 
 
@@ -742,6 +825,74 @@ namespace AlexTheDragon
 
 
 
+
+        }
+
+        private void ArtifactHooks()
+        {
+
+            On.RoR2.PortalDialerController.PortalDialerPreDialState.OnEnter += (orig, self) =>
+            {
+                foreach (KeyValuePair<NetworkInstanceId, NetworkIdentity> a in NetworkServer.objects) //CommandCube(Clone)
+                {
+                    if (a.Value.gameObject.name.StartsWith("PortalDialerButton"))
+                    {
+                        PortalDialerButtonController pDBC = a.Value.gameObject.GetComponent<PortalDialerButtonController>();
+                        for (int i = 1; i < 10; i++)
+                        {
+                            if (pDBC.name.EndsWith(i.ToString()))
+                            {
+                                inputRecipe[i - 1] = (byte)pDBC.currentDigitDef.value;
+                            }
+                        }
+                    }
+                }
+            
+                orig(self);
+            };
+
+            On.RoR2.PortalDialerController.Awake += (orig, self) =>
+            {
+                hasher = SHA256.Create();
+                orig(self);
+            };
+
+            On.RoR2.PortalDialerController.GetResult += (orig, self, sequence) => //sequence: .currentDigitDef.value
+            {
+                hasher.Initialize();
+                uhh = Sha256Hash.FromBytes(hasher.ComputeHash(sequence), 0);
+                return orig(self, sequence);
+            };
+
+            On.RoR2.PortalDialerController.PerformActionServer += (orig, self, sequence) => 
+            {
+                Logger.LogMessage(sequence);
+                if (!NetworkServer.active)
+                {
+                    Debug.LogWarning("[Server] function 'System.Boolean RoR2.PortalDialerController::PerformActionServer(System.Byte[])' called on client");
+                    return false;
+                }
+                for(int i = 0; i < 9; i++)
+                {
+                    if (inputRecipe[i] == transcriptionRecipe[i])
+                    {
+                    }
+                    else
+                    {
+                        return orig(self, sequence);
+                    }
+                }
+                uE.Invoke();
+                /*foreach (KeyValuePair<NetworkInstanceId, NetworkIdentity> a in NetworkServer.objects)
+                {
+                    if (a.Value.gameObject.name.StartsWith("PortalDialer") && !a.Value.gameObject.name.StartsWith("PortalDialerButton"))
+                    {
+                        PortalDialerController pDC = a.Value.gameObject.GetComponent<PortalDialerController>();
+                        
+                    }
+                }*/
+                return true;
+            };
 
         }
 
