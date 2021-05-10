@@ -3,6 +3,7 @@ using R2API;
 using R2API.Utils;
 using RoR2;
 using RoR2.UI;
+using RoR2.UI.LogBook;
 using System.Security.Cryptography;
 using RoR2.Stats;
 using System.Collections.Generic;
@@ -35,70 +36,59 @@ namespace AlexTheDragon
         byte[] transcriptionRecipe = {7, 7, 7,
                                       5, 5, 5,
                                       7, 7, 7};
+        byte[] logbookRecipe =  { 7, 7, 7,
+                                  7, 7, 7,
+                                  7, 7, 7};
+
         byte[] inputRecipe = {0,0,0,
                               0,0,0,
                               0,0,0};
 
         
         bool artifactTranscriptionWasOn = false;
-        private HUD hud = null;
+
+        private GameObject myPrefab = new GameObject();
+        
+
+        private Run.TimeStamp fadeOutTime;
+        private bool lunarFinished;
+        private bool removedItem;
+        public static ArtifactDef Transcription;
+        private UnityEvent transcriptionEvent;
+        private UnityEvent logbookEvent;
+        bool goneThroughArenaOnce = false;
+        GameObject logbook = Resources.Load<GameObject>("prefabs/ui/logbook/LogbookMenu");
+        SceneDef logbookScene = Resources.Load<SceneDef>("scenedefs/logbook");
 
         public void Awake()
         {
-            
+            //Initialize the events
             if (transcriptionEvent == null)
                 transcriptionEvent = new UnityEvent();
+            if (logbookEvent == null)
+                logbookEvent = new UnityEvent();
+
+            UnlockableDef transcriptionUnlock = ScriptableObject.CreateInstance<UnlockableDef>(); //BEFORE RELEASE: ADD A CORRECT UNLOCKABLEDEF
+            transcriptionUnlock.hidden = true;
+
             Logger.LogMessage("Ready for action!"); //REMOVE BEFORE RELEASE
+            //Hook into the game
             AchievementHooks();
             EscapeHook();
             LunarScavengerHooks();
             AddHooks();
-            ArtifactHooks();
+            ArtifactAndLogbookHooks();
 
+            //Create the transcription artifact
             OneRun100.Transcription = ScriptableObject.CreateInstance<ArtifactDef>();
             OneRun100.Transcription.nameToken = "Artifact of Transcription";
             OneRun100.Transcription.descriptionToken = "Logged enemies cannot spawn.";
             OneRun100.Transcription.smallIconDeselectedSprite = LoadSprite(OneRunDone.Properties.Resources.texTranscriptionResizedDisabled);
             OneRun100.Transcription.smallIconSelectedSprite = LoadSprite(OneRunDone.Properties.Resources.texTranscriptionResizedEnabled);
-            OneRun100.Transcription.unlockableDef = ScriptableObject.CreateInstance<UnlockableDef>(); //WARNING: ADD A CORRECT UNLOCKABLEDEF BEFORE RELEASE
+            OneRun100.Transcription.unlockableDef = transcriptionUnlock; 
             //OneRun100.Transcription.pickupModelPrefab = Resources.Load<GameObject>("Prefabs/NetworkedObjects/GenericPickup");
             OneRun100.Transcription.cachedName = "Transcription";
-            //OneRun100.Transcription.pickupModelPrefab.
             ArtifactAPI.Add(Transcription);
-
-            //On.RoR2.UI.PauseScreenController.Awake += MyFunc;
-
-
-
-            On.RoR2.UI.PauseScreenController.Awake += (orig, self) =>
-            {
-                Logger.LogMessage("PauseScreenController on!");
-
-                PauseScreenController psc = self;
-                //hud.mainContainer.transform
-                GameObject myObject = new GameObject("Tester");
-                myObject.transform.SetParent(psc.mainPanel);
-                RectTransform rectTransform = myObject.AddComponent<RectTransform>();
-                Vector3 localScale = new Vector3();
-                Vector3 localPosition = new Vector3();
-                localScale.Set(0.2f, 0.2f, 0.2f);
-                localPosition.Set(230f, 100f, 0f);
-                rectTransform.anchorMin = Vector2.zero;
-                rectTransform.anchorMax = Vector2.one;
-                rectTransform.sizeDelta = Vector2.zero;
-                rectTransform.anchoredPosition = Vector2.zero;
-                rectTransform.localScale = localScale;
-                rectTransform.localPosition = localPosition;
-                myObject.AddComponent<Image>();
-                myObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("textures/itemicons/yeah");
-
-                orig(self);
-            };
-            On.RoR2.UI.PauseScreenController.OpenSettingsMenu += (orig, self) =>
-            {
-                Logger.LogMessage("Opening SettingsMenu");
-                orig(self);
-            };
 
             /*foreach (GameObject gameObject in Resources.LoadAll<GameObject>("Prefabs/"))
             {
@@ -124,25 +114,15 @@ namespace AlexTheDragon
             }*/
 
             //[Message:One Run 100%] GenericPickup(Clone) (UnityEngine.GameObject)
-
             //[Message:One Run 100%] AltarSkeletonBody (UnityEngine.GameObject) [nhukukamamsd opinion]
-
             //[Message:One Run 100%] TimedChest (UnityEngine.GameObject)
-
             //[Message:One Run 100%] FusionCellDestructibleBody(Clone) (UnityEngine.GameObject) (??? Rallypoint Delta) (big boomers?)
-
             //[Message:One Run 100%] VultureEggBody(Clone) (UnityEngine.GameObject) 
         }
 
 
-        private Run.TimeStamp fadeOutTime;
-        private bool lunarFinished;
-        private bool removedItem;
-        public static ArtifactDef Transcription;
-        private UnityEvent transcriptionEvent;
-        bool goneThroughArenaOnce = false;
         /// <summary>
-        /// Removes and then reintroduces every vanilla monster back to their respective stage. THIS ONLY GETS CALLED ONCE WE REMOVE THE PREVIOUSLY ACTIVE TRANSCRIPTION.
+        /// Removes and then reintroduces every vanilla monster back to their respective stage.
         /// </summary>
         private void ResetAllMonsters()
         {
@@ -202,8 +182,8 @@ namespace AlexTheDragon
             DirectorAPI.Helpers.AddNewMonsterToStage(stoneTitanBlackBeach, champions, distantRoost);
             DirectorAPI.Helpers.AddNewMonsterToStage(beetleQueen, champions, distantRoost);
             DirectorAPI.Helpers.AddNewMonsterToStage(vagrant, champions, distantRoost);
-            DirectorAPI.Helpers.AddNewMonsterToStage(golem, minibosses, distantRoost); //?
-            DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, distantRoost); //?
+            DirectorAPI.Helpers.AddNewMonsterToStage(golem, minibosses, distantRoost); 
+            DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, distantRoost); 
             DirectorAPI.Helpers.AddNewMonsterToStage(lemurian, basicMonsters, distantRoost);
             DirectorAPI.Helpers.AddNewMonsterToStage(lesserWisp, basicMonsters, distantRoost);
             DirectorAPI.Helpers.AddNewMonsterToStage(beetle, basicMonsters, distantRoost);
@@ -216,8 +196,8 @@ namespace AlexTheDragon
             DirectorAPI.Helpers.AddNewMonsterToStage(stoneTitanGolemPlains, champions, titanicPlains);
             DirectorAPI.Helpers.AddNewMonsterToStage(beetleQueen, champions, titanicPlains);
             DirectorAPI.Helpers.AddNewMonsterToStage(vagrant, champions, titanicPlains);
-            DirectorAPI.Helpers.AddNewMonsterToStage(golem, minibosses, titanicPlains); //?
-            DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, titanicPlains); //?
+            DirectorAPI.Helpers.AddNewMonsterToStage(golem, minibosses, titanicPlains); 
+            DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, titanicPlains); 
             DirectorAPI.Helpers.AddNewMonsterToStage(lemurian, basicMonsters, titanicPlains);
             DirectorAPI.Helpers.AddNewMonsterToStage(beetle, basicMonsters, titanicPlains);
             DirectorAPI.Helpers.AddNewMonsterToStage(lesserWisp, basicMonsters, titanicPlains);
@@ -232,8 +212,8 @@ namespace AlexTheDragon
             DirectorAPI.Helpers.AddNewMonsterToStage(stoneTitanBlackBeach, champions, wetlandAspect);
             DirectorAPI.Helpers.AddNewMonsterToStage(beetleQueen, champions, wetlandAspect);
             DirectorAPI.Helpers.AddNewMonsterToStage(vagrant, champions, wetlandAspect);
-            DirectorAPI.Helpers.AddNewMonsterToStage(golem, minibosses, wetlandAspect); //?
-            DirectorAPI.Helpers.AddNewMonsterToStage(bell, minibosses, wetlandAspect); //?
+            DirectorAPI.Helpers.AddNewMonsterToStage(golem, minibosses, wetlandAspect); 
+            DirectorAPI.Helpers.AddNewMonsterToStage(bell, minibosses, wetlandAspect); 
             DirectorAPI.Helpers.AddNewMonsterToStage(lemurian, basicMonsters, wetlandAspect);
             DirectorAPI.Helpers.AddNewMonsterToStage(lesserWisp, basicMonsters, wetlandAspect);
             DirectorAPI.Helpers.AddNewMonsterToStage(jellyfish, basicMonsters, wetlandAspect);
@@ -260,7 +240,7 @@ namespace AlexTheDragon
             DirectorAPI.Helpers.AddNewMonsterToStage(impBoss, champions, rallypointDelta);
             DirectorAPI.Helpers.AddNewMonsterToStage(golem, minibosses, rallypointDelta);
             DirectorAPI.Helpers.AddNewMonsterToStage(greaterWisp, minibosses, rallypointDelta);
-            DirectorAPI.Helpers.AddNewMonsterToStage(bison, minibosses, rallypointDelta); //?
+            DirectorAPI.Helpers.AddNewMonsterToStage(bison, minibosses, rallypointDelta); 
             DirectorAPI.Helpers.AddNewMonsterToStage(lemurian, basicMonsters, rallypointDelta);
             DirectorAPI.Helpers.AddNewMonsterToStage(lesserWisp, basicMonsters, rallypointDelta);
             DirectorAPI.Helpers.AddNewMonsterToStage(imp, basicMonsters, rallypointDelta);
@@ -742,7 +722,7 @@ namespace AlexTheDragon
 
             On.RoR2.Stage.BeginServer += (orig, self) => //Called everytime you enter a new stage
             {
-                Logger.LogMessage(Stage.instance.sceneDef.cachedName); //REMOVE BEFORE RELEASE
+                //Logger.LogMessage(Stage.instance.sceneDef.cachedName); //REMOVE BEFORE RELEASE
                 if (Stage.instance.sceneDef.cachedName != "bazaar") //Bazaar doesn't have a stage.instance and I'm scared to figure out why
                 {
                     if (RunArtifactManager.instance.IsArtifactEnabled(Transcription))
@@ -758,6 +738,14 @@ namespace AlexTheDragon
                             ResetAllMonsters();
                         }
                     }
+                }
+                if(Stage.instance.sceneDef.cachedName == "logbook")
+                {
+                    SceneDef ERROR = Stage.instance.sceneDef.destinations[-1];
+                    //Due to the fact that we cause a return here, the Stage.instance doesn't have a chance to spawn the character or load the HUD, whilst still keeping the functionality of the logbook.
+                    //This only affects when we load the logbook during a run. Stage.instance does ||NOT|| exist outside of runs, so this will not get called outside of runs.
+                    //Calling a return does NOT make Stage.instance fail to load the character/HUD (which is exactly what we want).
+                    //"Sometimes my genius is... it's almost frightening"
                 }
 
 
@@ -831,7 +819,11 @@ namespace AlexTheDragon
 
             On.EntityStates.Huntress.BlinkState.OnEnter += (orig, self) => //REMOVE BEFORE RELEASE
             {
-                        orig(self);
+                
+                Logger.LogMessage(logbookScene.cachedName + "\n");
+                Logger.LogMessage(logbookScene.nameToken + "\n");
+                Run.instance.AdvanceStage(logbookScene);
+                orig(self);
             };
 
             On.RoR2.Run.SetEventFlag += (orig, self, name) => //Makes sure we have 2 void portals, one for the log (<10:00) and one for MUL-T (stage 7+).
@@ -866,17 +858,20 @@ namespace AlexTheDragon
 
 
         }
+        
         /// <summary>
         /// Adds the hooks neccesary for the Transcription Portal, so we can input the correct combination.
         /// </summary>
-        private void ArtifactHooks() 
+        private void ArtifactAndLogbookHooks() 
         {
-            //This is way easier than forcing the event to go into PDC.actions.action, and creating the correct hash value for it.
+            //This is easier than forcing the event to go into PDC.actions.action, and creating the correct hash value for it. (IMO)
 
             On.RoR2.PortalDialerController.Awake += (orig, self) => //Create the hook for the Transcription portal for this specific PortalDialerController (and remove the previous one).
             {
                 transcriptionEvent.RemoveAllListeners();
+                logbookEvent.RemoveAllListeners();
                 transcriptionEvent.AddListener(delegate { self.OpenArtifactPortalServer(Transcription); });
+                logbookEvent.AddListener(delegate { self.SpawnPortalServer(logbookScene); });
                 orig(self);
             };
 
@@ -902,6 +897,8 @@ namespace AlexTheDragon
 
             On.RoR2.PortalDialerController.PerformActionServer += (orig, self, sequence) => //Called upon removal of all ingredients
             {
+                bool doTranscription = true;
+                bool doLogbook = true;
                 if (!NetworkServer.active)
                 {
                     Debug.LogWarning("[Server] function 'System.Boolean RoR2.PortalDialerController::PerformActionServer(System.Byte[])' called on client");
@@ -909,21 +906,64 @@ namespace AlexTheDragon
                 }
                 for(int i = 0; i < 9; i++)
                 {
-                    //I know this type of if/else only works if we have 1 recipe, but we won't have any more.
                     if (inputRecipe[i] == transcriptionRecipe[i]) //If this ingredient in the inputRecipe is the same as the transcriptionRecipe
                     {
                         //Keep going
+                        Logger.LogMessage(inputRecipe[i] + " is transcription");
                     }
-                    else 
+                    else
                     {
-                        return orig(self, sequence); //Just do whatever you were going to do before.
+                        Logger.LogMessage(inputRecipe[i] + "is not transcription");
+                        doTranscription = false;
+                    }
+                    if (inputRecipe[i] == logbookRecipe[i]) //Since it goes cube, cube, cube, [CUBE/DIAMOND], [CUBE/DIAMOND], [CUBE/DIAMOND], cube, cube, cube. We know that if it isn't the transcription recipe, but it is the logbook recipe, we can just do it.
+                    {
+                        Logger.LogMessage(inputRecipe[i] + " is logbook");
+                        //keep going
+                    }
+                    else
+                    {
+                        Logger.LogMessage(inputRecipe[i] + "is not logbook");
+                        doLogbook = false;
+                    }
+                    if (!(doLogbook || doTranscription))
+                    {
+                        return orig(self, sequence);
                     }
                 }
-                transcriptionEvent.Invoke(); //Spawn the portal B]
+                if (doTranscription)
+                {
+                    transcriptionEvent.Invoke(); //Spawn the portal B]
+                    
+                }
+                else if(doLogbook)
+                {
+                    logbookEvent.Invoke();
+                }
+                
                 return true; //Return a true so the game knows that it's a correct combination and disables interaction on the buttons and the laptop.
             };
 
+            On.RoR2.UI.MPButton.OnPointerClick += (orig, self, AccelerationEvent) => //Called when we press a UI button, we use it during the logbook back press (so we don't go to title screen)
+            {
+                if (Stage.instance)
+                {//If we are inside a run and have a stage
+                    if (Stage.instance.sceneDef.cachedName == "logbook")
+                    {//If we are inside the logbook
+                        if (self.name == "NakedButton")
+                        {//If we're pressing on the "Back" button
+                            Run.instance.PickNextStageScene(Run.instance.startingScenes);
+                            Run.instance.AdvanceStage(Run.instance.nextStageScene);
+                            return; //Don't execute original
+                        }
+                    }
+                }
+                orig(self, AccelerationEvent);
+            };
+
         }
+
+
 
         /// <summary>
         /// Adds the hooks neccesary for the Lunar Scavenger encounter, removes a "Beads of Fealty" upon obelisk usage, makes the player recieve the "CompleteUnknownEnding" and Mastery achievement, and makes sure the player leaves the area instead of losing.
@@ -948,7 +988,10 @@ namespace AlexTheDragon
 
             On.EntityStates.Missions.LunarScavengerEncounter.FadeOut.OnEnter += (orig, self) => //When we kill the Lunar Scavenger
             {
-                UnlockAchievement("CompleteUnknownEnding");
+                foreach(LocalUser user in LocalUserManager.readOnlyLocalUsersList)
+                {
+                    user.userProfile.AddAchievement("CompleteUnknownEnding", false);
+                }
                 UnlockMasteryAchievement();
                 removedItem = false;
                 lunarFinished = false;
@@ -1016,17 +1059,20 @@ namespace AlexTheDragon
         {
             On.RoR2.EscapeSequenceController.CompleteEscapeSequence += (orig, self) => //This function does not work with orig(self).
             {
-                UnlockAchievement("CompleteMainEnding");
+                    foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
+                {
+                    user.userProfile.AddAchievement("CompleteMainEnding", false);
+                    DifficultyDef difficultyDef = DifficultyCatalog.GetDifficultyDef(Run.instance.ruleBook.FindDifficulty());
+                    if (difficultyDef != null && difficultyDef.countsAsHardMode)
+                    {
+                        user.userProfile.AddAchievement("CompleteMainEndingHard", false);
+                    }
+                    else
+                    {
+                        Logger.LogMessage("MainEndingHard not unlocked due incorrect difficulty");
+                    }
+                }
                 UnlockMasteryAchievement();
-                DifficultyDef difficultyDef = DifficultyCatalog.GetDifficultyDef(Run.instance.ruleBook.FindDifficulty());
-                if (difficultyDef != null && difficultyDef.countsAsHardMode)
-                {
-                    UnlockAchievement("CompleteMainEndingHard");
-                }
-                else
-                {
-                    Logger.LogMessage("MainEndingHard not unlocked due incorrect difficulty");
-                }
                 Run.instance.AdvanceStage(Run.instance.nextStageScene);
             };
         }
@@ -1152,23 +1198,6 @@ namespace AlexTheDragon
                 }
             }
         }
-
-        /// <summary>
-        /// Unlock a specific achievement by using it's stringname. This counts as a "RoR2.UserAchievementManager.GrantAchievement", not "RoR2.NetworkUser.ServerHandleUnlock" (what the game uses normally).
-        /// </summary>
-        /// <param name="achievement">The name of the achievement, e.g. "CommandoNonLunarEndurance" (check RoR2.Achievements' [RegisterAchievement()], there it's the first variable)</param>
-        public void UnlockAchievement(string achievement) //Unlock a specific achievement
-        {
-            AchievementDef achievementDef = AchievementManager.GetAchievementDef(achievement);
-            if (achievementDef != null)
-            {
-                foreach (LocalUser user in LocalUserManager.readOnlyLocalUsersList)
-                {
-                    AchievementManager.GetUserAchievementManager(user).GrantAchievement(achievementDef);
-                }
-            }
-        }
-
 
         /// <summary>
         /// Unlock the mastery achievement and survivor log for the currently played character, has a difficultycheck inside.
